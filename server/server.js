@@ -1,9 +1,13 @@
 require('./config/config');
 
 const express = require('express');
+const mongoose = require('mongoose');
+
 const app = express();
 
 const bodyParser = require('body-parser');
+
+app.use(require('./routes/usuario'));
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended:false }));
@@ -11,33 +15,7 @@ app.use(bodyParser.urlencoded({ extended:false }));
 app.use(bodyParser.json());
 
 
-// Obtener registros
-app.get('/usuario',(req,res)=>{
-    res.json('get usuario')
-});
-//crear nuevos registros
-app.post('/usuario', (req, res) => {
-    let body=req.body;
-    if(body.nombre===undefined){
-        res.status(400).json({
-            ok:false,
-            mensaje:"El nombre es necesario"
-        });
-    }else{
-        res.json({
-            persona: body
-        });
-    }
-    
-});
 
-//actualizar 
-app.put('/usuario/:id', (req, res) => {
-    let id = req.params.id;
-    res.json({
-        id
-    })
-});
 
 //eliminar - cambiar de estado
 app.delete('/usuario/:id', (req, res) => {
@@ -47,7 +25,12 @@ app.delete('/usuario/:id', (req, res) => {
     })
 });
 
+//connecto mongodb
+mongoose.connect('mongodb://localhost:27017/cafe',(err)=>{
+    if(err) throw err;
 
+    console.log('Base de datos online');
+});
 app.listen(process.env.PORT,()=>{
     console.log(`Escuchando el puerto ${process.env.PORT}`);
     
