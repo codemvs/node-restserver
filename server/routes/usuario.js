@@ -1,4 +1,7 @@
 const express = require('express');
+const Usuario = require('../models/usuario');
+const bcrypt = require('bcrypt');
+
 const app = express();
 
 const bodyParser = require('body-parser');
@@ -14,16 +17,25 @@ app.get('/usuario', (req, res) => {
 //crear nuevos registros
 app.post('/usuario', (req, res) => {
     let body = req.body;
-    if (body.nombre === undefined) {
-        res.status(400).json({
-            ok: false,
-            mensaje: "El nombre es necesario"
-        });
-    } else {
+    let usuario = new Usuario({
+        nombre:body.nombre,
+        email:body.email,
+        password: bcrypt.hashSync(body.password,10),
+        role:body.role
+    });
+
+    usuario.save((err,usuarioDB)=>{
+        if(err){
+            return res.status(400).json({
+                ok:false,
+                err
+            });
+        }        
         res.json({
-            persona: body
+            ok:true,
+            usuario:usuarioDB
         });
-    }
+    });
 
 });
 
