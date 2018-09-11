@@ -1,6 +1,7 @@
 const express = require('express');
 const Usuario = require('../models/usuario');
 const bcrypt = require('bcrypt');
+const _ = require('underscore');
 
 const app = express();
 
@@ -12,7 +13,30 @@ app.use(bodyParser.json());
 
 // Obtener registros
 app.get('/usuario', (req, res) => {
-    res.json('get usuario Local')
+    let desde = req.query.desde || 0;
+    let limite = req.query.limite||5;
+    desde = Number(desde);
+    limite = Number(limite);
+    Usuario.find({})
+            .skip(desde)
+            .limit(limite)
+            .exec((err,usuarios)=>{
+                if(err){
+                    return res.status(400).json({
+                        ok:false,
+                        err
+                    });
+                }
+                Usuario.count({},(err,conteo)=>{
+                    res.json({
+                        ok: true,
+                        cuantos:conteo,
+                        usuarios
+
+                    })
+                });
+                
+            })
 });
 //crear nuevos registros
 app.post('/usuario', (req, res) => {
@@ -23,28 +47,40 @@ app.post('/usuario', (req, res) => {
         password: bcrypt.hashSync(body.password,10),
         role:body.role
     });
-
-    usuario.save((err,usuarioDB)=>{
-        if(err){
-            return res.status(400).json({
-                ok:false,
-                err
+        usuario.save((err, usuarioDB) => {
+            if (err) {
+                return res.status(400).json({
+                    ok: false,
+                    err
+                });
+            }
+            res.json({
+                ok: true,
+                usuario: usuarioDB
             });
-        }        
-        res.json({
-            ok:true,
-            usuario:usuarioDB
-        });
-    });
-
+        });    
 });
 
 //actualizar 
 app.put('/usuario/:id', (req, res) => {
     let id = req.params.id;
-    res.json({
-        id
-    })
+    let body = _.pick(req.body, ['nombre','email','img',
+        'role','estado']);
+    
+    Usuario.findByIdAndUpdate(id, body,{new:true,runValidators:true},(err, usuarioDB)=>{     
+        console.log(body)   
+        if(err){
+            return res.status(400).json({
+                ok:false,
+                err
+            });
+        }
+        res.json({
+            ok:true,
+            usuario:usuarioDB
+        });
+    });
+    
 });
 
 //eliminar - cambiar de estado
