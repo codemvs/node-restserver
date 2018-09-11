@@ -14,7 +14,7 @@ app.use(bodyParser.json());
 // Obtener registros
 app.get('/usuario', (req, res) => {
     let desde = req.query.desde || 0;
-    let limite = req.query.limite||5;
+    let limite = req.query.limite|| 5;
     desde = Number(desde);
     limite = Number(limite);
     Usuario.find({})
@@ -32,7 +32,6 @@ app.get('/usuario', (req, res) => {
                         ok: true,
                         cuantos:conteo,
                         usuarios
-
                     })
                 });
                 
