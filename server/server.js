@@ -9,7 +9,7 @@ const app = express();
 app.use(require('./routes/usuario'));
 
 //connecto mongodb
-mongoose.connect('mongodb://localhost:27017/cafe',(err)=>{
+mongoose.connect(process.env.URLDB,(err)=>{
     if(err) throw err;
 
     console.log('Base de datos online');

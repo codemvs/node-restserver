@@ -17,7 +17,8 @@ app.get('/usuario', (req, res) => {
     let limite = req.query.limite|| 5;
     desde = Number(desde);
     limite = Number(limite);
-    Usuario.find({},'nombre email role estado google img')
+    let confSearch={estado:true};
+    Usuario.find(confSearch,'nombre email role estado google img')
             .skip(desde)
             .limit(limite)
             .exec((err,usuarios)=>{
@@ -27,7 +28,7 @@ app.get('/usuario', (req, res) => {
                         err
                     });
                 }
-                Usuario.count({},(err,conteo)=>{
+                Usuario.count(confSearch,(err,conteo)=>{
                     res.json({
                         ok: true,
                         cuantos:conteo,
@@ -67,7 +68,7 @@ app.put('/usuario/:id', (req, res) => {
         'role','estado']);
     
     Usuario.findByIdAndUpdate(id, body,{new:true,runValidators:true},(err, usuarioDB)=>{     
-        console.log(body)   
+        
         if(err){
             return res.status(400).json({
                 ok:false,
@@ -85,8 +86,12 @@ app.put('/usuario/:id', (req, res) => {
 //eliminar - cambiar de estado
 app.delete('/usuario/:id', (req, res) => {
     let id = req.params.id;
-
-    Usuario.findByIdAndRemove(id,(err,usuarioBorrado)=>{
+    
+    let cambiaEstado = {
+        estado:false
+    };
+    Usuario.findByIdAndUpdate(id, cambiaEstado, { new: true, runValidators: true },(err, usuarioBorrado) => {
+    //Usuario.findByIdAndRemove(id,(err,usuarioBorrado)=>{
         if(err){
             return res.status(400).json({
                 ok:false,
