@@ -3,16 +3,15 @@ const Usuario = require('../models/usuario');
 const bcrypt = require('bcrypt');
 const _ = require('underscore');
 
+
+const { verificaToken,verificaAdmin_Role } = require('../middlewares/autenticacion');
+
 const app = express();
 
-const bodyParser = require('body-parser');
-// parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false }));
-//parse application/json
-app.use(bodyParser.json());
 
 // Obtener registros
-app.get('/usuario', (req, res) => {
+app.get('/usuario',verificaToken,(req, res) => {
+
     let desde = req.query.desde || 0;
     let limite = req.query.limite|| 5;
     desde = Number(desde);
@@ -28,7 +27,7 @@ app.get('/usuario', (req, res) => {
                         err
                     });
                 }
-                Usuario.count(confSearch,(err,conteo)=>{
+                Usuario.countDocuments(confSearch,(err,conteo)=>{
                     res.json({
                         ok: true,
                         cuantos:conteo,
@@ -39,7 +38,8 @@ app.get('/usuario', (req, res) => {
             })
 });
 //crear nuevos registros
-app.post('/usuario', (req, res) => {
+app.post('/usuario', [verificaToken, verificaAdmin_Role],(req, res) => {
+    
     let body = req.body;
     let usuario = new Usuario({
         nombre:body.nombre,
@@ -62,7 +62,8 @@ app.post('/usuario', (req, res) => {
 });
 
 //actualizar 
-app.put('/usuario/:id', (req, res) => {
+app.put('/usuario/:id', [verificaToken, verificaAdmin_Role], (req, res) => {
+    
     let id = req.params.id;
     let body = _.pick(req.body, ['nombre','email','img',
         'role','estado']);
@@ -84,7 +85,7 @@ app.put('/usuario/:id', (req, res) => {
 });
 
 //eliminar - cambiar de estado
-app.delete('/usuario/:id', (req, res) => {
+app.delete('/usuario/:id', [verificaToken, verificaAdmin_Role],(req, res) => {
     let id = req.params.id;
     
     let cambiaEstado = {
