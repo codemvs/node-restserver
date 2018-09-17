@@ -10,32 +10,36 @@ const app = express();
 
 
 // Obtener registros
-app.get('/usuario',verificaToken,(req, res) => {
+app.get('/usuario', verificaToken, (req, res) => {
 
     let desde = req.query.desde || 0;
-    let limite = req.query.limite|| 5;
     desde = Number(desde);
+
+    let limite = req.query.limite || 5;
     limite = Number(limite);
-    let confSearch={estado:true};
-    Usuario.find(confSearch,'nombre email role estado google img')
-            .skip(desde)
-            .limit(limite)
-            .exec((err,usuarios)=>{
-                if(err){
-                    return res.status(400).json({
-                        ok:false,
-                        err
-                    });
-                }
-                Usuario.countDocuments(confSearch,(err,conteo)=>{
-                    res.json({
-                        ok: true,
-                        cuantos:conteo,
-                        usuarios
-                    })
+
+    let estado = { estado: true };
+    Usuario.find(estado, 'nombre email role estado google img')
+        .skip(desde)
+        .limit(limite)
+        .exec((err, usuarios) => {
+
+            if (err) {
+                return res.status(400).json({
+                    ok: false,
+                    err
                 });
-                
-            })
+            }
+
+            Usuario.count(estado, (err, conteo) => {
+
+                res.json({
+                    ok: true,
+                    usuarios,
+                    cuantos: conteo
+                });
+            });
+        });
 });
 //crear nuevos registros
 app.post('/usuario', [verificaToken, verificaAdmin_Role],(req, res) => {
@@ -62,26 +66,29 @@ app.post('/usuario', [verificaToken, verificaAdmin_Role],(req, res) => {
 });
 
 //actualizar 
-app.put('/usuario/:id', [verificaToken, verificaAdmin_Role], (req, res) => {
-    
+app.put('/usuario/:id', [verificaToken, verificaAdmin_Role], function (req, res) {
+
     let id = req.params.id;
-    let body = _.pick(req.body, ['nombre','email','img',
-        'role','estado']);
-    
-    Usuario.findByIdAndUpdate(id, body,{new:true,runValidators:true},(err, usuarioDB)=>{     
-        
-        if(err){
+    let body = _.pick(req.body, ['nombre', 'email', 'img', 'role', 'estado']);
+
+    Usuario.findByIdAndUpdate(id, body, { new: true, runValidators: true }, (err, usuarioDB) => {
+
+        if (err) {
             return res.status(400).json({
-                ok:false,
+                ok: false,
                 err
             });
         }
+
+
+
         res.json({
-            ok:true,
-            usuario:usuarioDB
+            ok: true,
+            usuario: usuarioDB
         });
-    });
-    
+
+    })
+
 });
 
 //eliminar - cambiar de estado
